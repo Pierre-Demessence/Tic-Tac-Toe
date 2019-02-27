@@ -50,7 +50,6 @@
 					if (ia2) {
 						choixNiveauIA2();
 					}
-					choixDebug();
 				}
 
 				if(ia2) {
@@ -63,28 +62,24 @@
 
 			// ------------------------- ------------------------- ------------------------- ------------------------- -------------------------
 			function choixDeuxIA() {
-				ia2 = confirm("Voulez vous voir s'affronnter 2 IA ?");
-			}
-
-			function choixDebug() {
-				debug = confirm("Voulez vous voir le debug ?");
+				ia2 = confirm("Do you want to see 2 AI playing ?");
 			}
 
 			function choixNombreJoueur() {
-				ia = !confirm("Voulez vous jouer à deux joueurs ?");
+				ia = !confirm("Do you want to play against another human ?");
 			}
 
 			function choixNiveauIA2() {
-				iaNiveau2 = prompt("Niveau de l'IA2 (2-9) ?");
+				iaNiveau2 = prompt("Second AI Level (2-9) ?");
 				while(isNaN(iaNiveau2) || iaNiveau2 < 2 || iaNiveau2 > 9) {
-					iaNiveau2 = prompt("Niveau de l'IA2 (1-9) ?");
+					iaNiveau2 = prompt("Second AI Level (1-9) ?");
 				}
 			}
 
 			function choixNiveauIA() {
-				iaNiveau = prompt("Niveau de l'IA (2-9) ?");
+				iaNiveau = prompt("AI Level (2-9) ?");
 				while(isNaN(iaNiveau) || iaNiveau < 2 || iaNiveau > 9) {
-					iaNiveau = prompt("Niveau de l'IA (2-9) ?");
+					iaNiveau = prompt("AI Level (2-9) ?");
 				}
 			}
 
@@ -128,11 +123,11 @@
 			// ------------------------- ------------------------- ------------------------- ------------------------- -------------------------
 			function gameEnd() {
 				if (verifier(0, 1, 2) || verifier(3, 4, 5) || verifier(6, 7, 8) || verifier(0, 3, 6) || verifier(1, 4, 7) || verifier(2, 5, 8) || verifier(0, 4, 8) || verifier(2, 4, 6)) {
-					alert("Le joueur "+gagnant+" ("+(gagnant==1?"rond":"croix")+") a gagné !");
+					alert("Player "+gagnant+" ("+(gagnant==1?"circle":"cross")+") won!");
 					fini = true;
 				}
 				else if (plateau[0] && plateau[1] && plateau[2] && plateau[3] && plateau[4] && plateau[5] && plateau[6] && plateau[7] && plateau[8]) {
-					alert("Match nul !");
+					alert("Draw!");
 					fini = true;
 					return 0;
 				}
@@ -165,10 +160,10 @@
 						if (!ia) gameEnd();
 					}
 					else
-						alert("La case a déjà été jouée.");
+						alert("Square already occupied.");
 				}
 				else
-					alert("La partie est terminée !");
+					alert("Game is finished.");
 			}
 
 			// ========================= ========================= ========================= ========================= =========================
@@ -232,7 +227,7 @@
 				}
 				else if (plateau[0]>0 && plateau[1]>0 && plateau[2]>0 && plateau[3]>0 && plateau[4]>0 && plateau[5]>0 && plateau[6]>0 && plateau[7]>0 && plateau[8]>0) {
 					return 42;
-					if (debug) alert("egalite");
+					console.log("Draw");
 				}
 				return 0;
 			}
@@ -303,10 +298,9 @@
 						plateau[3]+plateau[4]+plateau[5]+"\n"+
 						plateau[6]+plateau[7]+plateau[8]
 						);*/
-						if (debug) alert("Si je joue en case "+ncrt);
 						plateau[ncrt]=joueur_crt;
 						tmpcrt = iaMin(deep-1);
-						if (debug) alert("Score : "+tmpcrt);
+						console.log(`If I play in ${ncrt}, score=${tmpcrt}`);
 						if ((tmpcrt > maxcrt) || (tmpcrt==maxcrt && random(0, 1))) {
 							maxcrt = tmpcrt;
 							meilleureCase = ncrt;
