@@ -1,0 +1,370 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!-- saved from url=(0038)http://barbi008/http/morpion_V1.0.php# -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<title>Morpion V3.0 - TP PHP 1</title>
+
+		<style type="text/css">
+			table, td {
+				text-align:center;
+				border-collapse:collapse;
+				border:1px solid black;
+			}
+		</style>
+		<script type="text/javascript">
+			var clia;
+			var clib;
+			var clic;
+			var joueur_crt;
+			var ia;
+			var ia2;
+			var fini;
+			var gagnant;
+			var plateau;
+			var iaGagnant;
+			var iaNiveau;
+			var iaNiveau2;
+			var debug;
+
+			// ------------------------- ------------------------- ------------------------- ------------------------- -------------------------
+			function again() {
+				if (clia && clib && clic) {
+					window.clearInterval(clia); window.clearInterval(clib); window.clearInterval(clic);
+					clia = false; clib = false;	clic = false;
+				}
+
+				plateau = new Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+				for(n=0 ; n<9 ; n++) {
+					document.getElementById(n).src="vide.png";
+					document.getElementById(n).style.visibility="visible";
+				}
+
+				fini = false;
+				gagnant = 0;
+
+				choixNombreJoueur();
+				tiragePremierJoueur();
+
+				if (ia) {
+					choixNiveauIA();
+					choixDeuxIA();
+					if (ia2) {
+						choixNiveauIA2();
+					}
+					choixDebug();
+				}
+
+				if(ia2) {
+					iaPlay();
+				}
+				else if(ia && joueur_crt==2) {
+					iaPlay(iaNiveau);
+				}
+			}
+
+			// ------------------------- ------------------------- ------------------------- ------------------------- -------------------------
+			function choixDeuxIA() {
+				ia2 = confirm("Voulez vous voir s'affronnter 2 IA ?");
+			}
+
+			function choixDebug() {
+				debug = confirm("Voulez vous voir le debug ?");
+			}
+
+			function choixNombreJoueur() {
+				ia = !confirm("Voulez vous jouer à deux joueurs ?");
+			}
+
+			function choixNiveauIA2() {
+				iaNiveau2 = prompt("Niveau de l'IA2 (2-9) ?");
+				while(isNaN(iaNiveau2) || iaNiveau2 < 2 || iaNiveau2 > 9) {
+					iaNiveau2 = prompt("Niveau de l'IA2 (1-9) ?");
+				}
+			}
+
+			function choixNiveauIA() {
+				iaNiveau = prompt("Niveau de l'IA (2-9) ?");
+				while(isNaN(iaNiveau) || iaNiveau < 2 || iaNiveau > 9) {
+					iaNiveau = prompt("Niveau de l'IA (2-9) ?");
+				}
+			}
+
+			// ------------------------- ------------------------- ------------------------- ------------------------- -------------------------
+			function tiragePremierJoueur() {
+				joueur_crt = random(1, 2);
+				if (joueur_crt == 1) {
+					document.getElementById('joueur_crt').src="rond.png";
+				}
+				else {
+					document.getElementById('joueur_crt').src="croix.png";
+				}
+			}
+
+			// ------------------------- ------------------------- ------------------------- ------------------------- -------------------------
+			function random(min, max) {
+				return (min + Math.floor(Math.random() * ((max+1) - min)));
+			}
+
+			// ------------------------- ------------------------- ------------------------- ------------------------- -------------------------
+			function clignoter(n) {
+				if (document.getElementById(n).style.visibility=="visible")
+					document.getElementById(n).style.visibility="hidden";
+				else
+					document.getElementById(n).style.visibility="visible";
+			}
+
+			// ------------------------- ------------------------- ------------------------- ------------------------- -------------------------
+			function verifier(a, b, c) {
+				if (plateau[a] > 0 && plateau[b] > 0 && plateau[c] > 0 && plateau[a] == plateau[b] && plateau[b] == plateau[c])	{
+					gagnant=plateau[a];
+					clia = setInterval("clignoter("+a+")", 400);
+					clib = setInterval("clignoter("+b+")", 400);
+					clic = setInterval("clignoter("+c+")", 400);
+					return true;
+				}
+				else
+					return false;
+			}
+
+			// ------------------------- ------------------------- ------------------------- ------------------------- -------------------------
+			function gameEnd() {
+				if (verifier(0, 1, 2) || verifier(3, 4, 5) || verifier(6, 7, 8) || verifier(0, 3, 6) || verifier(1, 4, 7) || verifier(2, 5, 8) || verifier(0, 4, 8) || verifier(2, 4, 6)) {
+					alert("Le joueur "+gagnant+" ("+(gagnant==1?"rond":"croix")+") a gagné !");
+					fini = true;
+				}
+				else if (plateau[0] && plateau[1] && plateau[2] && plateau[3] && plateau[4] && plateau[5] && plateau[6] && plateau[7] && plateau[8]) {
+					alert("Match nul !");
+					fini = true;
+					return 0;
+				}
+			}
+
+			// ------------------------- ------------------------- ------------------------- ------------------------- -------------------------
+			function joue(n) {
+				if (!fini) {
+					if (!plateau[n]) {
+						plateau[n] = joueur_crt;
+						if (joueur_crt == 1) {
+							if (ia) {
+								document.getElementById(n).src="rond.png";
+								joueur_crt = 2;
+								document.getElementById('joueur_crt').src="croix.png";
+								gameEnd();
+								if (!fini) iaPlay(iaNiveau);
+							}
+							else {
+								document.getElementById(n).src="rond.png";
+								joueur_crt = 2;
+								document.getElementById('joueur_crt').src="croix.png";
+							}
+						}
+						else {
+							document.getElementById(n).src="croix.png";
+							joueur_crt = 1;
+							document.getElementById('joueur_crt').src="rond.png";
+						}
+						if (!ia) gameEnd();
+					}
+					else
+						alert("La case a déjà été jouée.");
+				}
+				else
+					alert("La partie est terminée !");
+			}
+
+			// ========================= ========================= ========================= ========================= =========================
+			// ------------------------- ------------------------- ------------------------- ------------------------- -------------------------
+			function iaMin(deep) {
+				var min = Infinity;
+				var tmpMin = 0;
+				if (iaGameEnd() || deep==0)
+					return iaEval();
+				else {
+					for(var nmin=0 ; nmin<9 ; nmin++) {
+						if (plateau[nmin]==0) {
+							plateau[nmin]=joueurInverse();
+							tmpMin = iaMax(deep-1);
+							if ((tmpMin < min) || (tmpMin==min && random(0, 1))) {
+								min = tmpMin;
+							}
+							plateau[nmin]=0;
+						}
+					}
+					return min;
+				}
+			}
+
+			// ------------------------- ------------------------- ------------------------- ------------------------- -------------------------
+			function iaMax(deep) {
+				var max = -Infinity;
+				var tmpMax = 0;
+				if (iaGameEnd() || deep==0)
+					return iaEval();
+				else {
+					for(var nmax=0 ; nmax<9 ; nmax++) {
+						if (plateau[nmax]==0) {
+							plateau[nmax]=joueur_crt;
+							tmpMax = iaMin(deep-1);
+							if ((tmpMax > max) || (tmpMax==max && random(0, 1))) {
+								max = tmpMax;
+							}
+							plateau[nmax]=0;
+						}
+					}
+					return max;
+				}
+			}
+
+			// ------------------------- ------------------------- ------------------------- ------------------------- -------------------------
+			function iaVerifier(a, b, c) {
+				if (plateau[a] > 0 && plateau[b] > 0 && plateau[c] > 0 && plateau[a] == plateau[b] && plateau[b] == plateau[c])	{
+					iaGagnant = plateau[a];
+					return true;
+				}
+				else
+					return false;
+			}
+
+			// ------------------------- ------------------------- ------------------------- ------------------------- -------------------------
+			function iaGameEnd() {
+				iaGagnant = 0;
+				if (iaVerifier(0, 1, 2) || iaVerifier(3, 4, 5) || iaVerifier(6, 7, 8) || iaVerifier(0, 3, 6) || iaVerifier(1, 4, 7) || iaVerifier(2, 5, 8) || iaVerifier(0, 4, 8) || iaVerifier(2, 4, 6)) {
+					return iaGagnant;
+				}
+				else if (plateau[0]>0 && plateau[1]>0 && plateau[2]>0 && plateau[3]>0 && plateau[4]>0 && plateau[5]>0 && plateau[6]>0 && plateau[7]>0 && plateau[8]>0) {
+					return 42;
+					if (debug) alert("egalite");
+				}
+				return 0;
+			}
+
+			function joueurInverse() {
+				if(joueur_crt==1)
+					return 2;
+				else
+					return 1;
+			}
+
+			// ------------------------- ------------------------- ------------------------- ------------------------- -------------------------
+			function iaPointsTriplets(a, b, c) {
+				// Si il y a au moins un pion de chaque joueur.
+				if ((plateau[a] == joueurInverse() || plateau[b] == joueurInverse() || plateau[c] == joueurInverse()) && (plateau[a] == joueur_crt || plateau[b] == joueur_crt || plateau[c] == joueur_crt))
+					return 0;
+				else {
+					// Si il y a 2 pions à l'adversaire.
+					if((plateau[a] == joueurInverse() && (plateau[b] == joueurInverse() || plateau[c] == joueurInverse())) || (plateau[b] == joueurInverse() && plateau[c] == joueurInverse()))
+						return -50;
+					// Si il y a 2 pions à l'IA.
+					else if((plateau[a] == joueur_crt && (plateau[b] == joueur_crt || plateau[c] == joueur_crt)) || (plateau[b] == joueur_crt && plateau[c] == joueur_crt))
+						return 50;
+					// Si il y a au moins 1 pion à l'adversaire.
+					else if(plateau[a] == joueurInverse() || plateau[b] == joueurInverse() || plateau[c] == joueurInverse())
+						return -10;
+					// Si il y a au moins 1 pions à l'IA.
+					else if(plateau[a] == joueur_crt || plateau[b] == joueur_crt || plateau[c] == joueur_crt)
+						return 10;
+					else
+						return 0;
+				}
+			}
+
+			// ------------------------- ------------------------- ------------------------- ------------------------- -------------------------
+			function iaEval() {
+				if (iaGameEnd()==joueurInverse()) {
+					return -1000;
+				}
+				else if (iaGameEnd()==joueur_crt) {
+					return 1000;
+				}
+				else if (iaGameEnd()==42)
+					return 0;
+				else {
+					var score = 0;
+					score += iaPointsTriplets(0, 1, 2);
+					score += iaPointsTriplets(3, 4, 5);
+					score += iaPointsTriplets(6, 7, 8);
+					score += iaPointsTriplets(0, 3, 6);
+					score += iaPointsTriplets(1, 4, 7);
+					score += iaPointsTriplets(2, 5, 8);
+					score += iaPointsTriplets(0, 4, 8);
+					score += iaPointsTriplets(2, 4, 6);
+					return score;
+				}
+			}
+
+			// ------------------------- ------------------------- ------------------------- ------------------------- -------------------------
+			function iaPlay(deep) {
+				var maxcrt = -Infinity;
+				var tmpcrt = 0;
+				var meilleureCase;
+				for(var ncrt=0 ; ncrt<9 ; ncrt++) {
+					if (plateau[ncrt]==0) {
+						/*
+						alert(""+plateau[0]+plateau[1]+plateau[2]+"\n"+
+						plateau[3]+plateau[4]+plateau[5]+"\n"+
+						plateau[6]+plateau[7]+plateau[8]
+						);*/
+						if (debug) alert("Si je joue en case "+ncrt);
+						plateau[ncrt]=joueur_crt;
+						tmpcrt = iaMin(deep-1);
+						if (debug) alert("Score : "+tmpcrt);
+						if ((tmpcrt > maxcrt) || (tmpcrt==maxcrt && random(0, 1))) {
+							maxcrt = tmpcrt;
+							meilleureCase = ncrt;
+						}
+						plateau[ncrt]=0;
+					}
+				}
+
+				if (ia2) {
+					plateau[meilleureCase] = joueur_crt;
+					if (joueur_crt==1) {
+						joueur_crt = 2;
+						document.getElementById(meilleureCase).src="rond.png";
+						document.getElementById('joueur_crt').src="croix.png";
+						gameEnd();
+						if (!fini)
+							setTimeout("iaPlay("+iaNiveau2+")",1000);
+					}
+					else if (joueur_crt==2) {
+						joueur_crt = 1;
+						document.getElementById(meilleureCase).src="croix.png";
+						document.getElementById('joueur_crt').src="rond.png";
+						gameEnd();
+						if (!fini)
+							setTimeout("iaPlay("+iaNiveau+")",1000);
+					}
+				}
+				else {
+					// Une fois qu'on a trouvé le meilleur coup, on le joue.
+					//alert(plateau);
+					plateau[meilleureCase] = joueur_crt;
+					joueur_crt = 1;
+					document.getElementById(meilleureCase).src="croix.png";
+					document.getElementById('joueur_crt').src="rond.png";
+					gameEnd();
+				}
+			}
+		</script>
+	</head><body onload="again();">
+<center>
+<table>
+<tbody><tr>
+	<td><a onclick="joue(0);"><img id="0" src="./vide.png" style="visibility: visible; "></a></td>
+	<td><a onclick="joue(1);"><img id="1" src="./vide.png" style="visibility: visible; "></a></td>
+	<td><a onclick="joue(2);"><img id="2" src="./vide.png" style="visibility: visible; "></a></td>
+</tr>
+<tr>
+	<td><a onclick="joue(3);"><img id="3" src="./vide.png" style="visibility: visible; "></a></td>
+	<td><a onclick="joue(4);"><img id="4" src="./vide.png" style="visibility: visible; "></a></td>
+	<td><a onclick="joue(5);"><img id="5" src="./vide.png" style="visibility: visible; "></a></td>
+</tr>
+<tr>
+	<td><a onclick="joue(6);"><img id="6" src="./vide.png" style="visibility: visible; "></a></td>
+	<td><a onclick="joue(7);"><img id="7" src="./vide.png" style="visibility: visible; "></a></td>
+	<td><a onclick="joue(8);"><img id="8" src="./vide.png" style="visibility: visible; "></a></td>
+</tr>
+</tbody></table>
+<div style="vertical-align: middle;display: inline-block;"><p>Joueur actuel : <img id="joueur_crt" src="./vide.png"></p></div>
+<br><input type="button" onclick="again();" value="Recommencer">
+</center>
+</body></html>
